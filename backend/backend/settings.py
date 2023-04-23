@@ -38,9 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    #My apps 
-    
+    #My apps
+
     'apitocuraduria.apps.ApitocuraduriaConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
