@@ -39,3 +39,4 @@ def getProduct(request, pk):  # Get a single Product
     product = Product.objects.get(_id=pk)
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data)
+ 
