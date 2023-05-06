@@ -24,7 +24,7 @@
         }
     },
 	"containerEnv": {
-        "DJANGO_SETTINGS_MODULE": "config.settings_development"
+        "DJANGO_SETTINGS_MODULE": "backend.settings_development"
     },
 	"portsAttributes": {
         "8000": {
