@@ -4,7 +4,7 @@
 	"name": "Python 3 & PostgreSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/backend",
 	"hostRequirements": {
         "cpus": 4
     },
@@ -14,7 +14,7 @@
     "postAttachCommand": {
         "server": "python manage.py runserver"
     },
-	
+
 	"customizations": {
         "vscode":{
             "extensions":[
