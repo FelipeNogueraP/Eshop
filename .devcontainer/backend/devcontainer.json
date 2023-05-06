@@ -8,7 +8,13 @@
 	"hostRequirements": {
         "cpus": 4
     },
+	"waitFor": "onCreateCommand",
 	"updateContentCommand": "python -m pip install --upgrade pip && pip install -r requirements.txt && python manage.py migrate",
+	"postCreateCommand": "",
+    "postAttachCommand": {
+        "server": "python manage.py runserver"
+    },
+	
 	"customizations": {
         "vscode":{
             "extensions":[
