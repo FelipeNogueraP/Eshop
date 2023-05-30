@@ -1,10 +1,9 @@
 {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.python"
-    },
-    "files.autoSave": "afterDelay",
-    "github.copilot.advanced": {
-    
-    }
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "files.autoSave": "afterDelay",
+  "github.copilot.advanced": {},
+  "python.formatting.provider": "none"
 }

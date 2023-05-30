@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Form,
   Button,
   Row,
   Col,
   ListGroup,
   Image,
   Card,
-  ListGroupItem,
+  
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
@@ -43,8 +42,11 @@ function PlaceOrderScreen() {
               <h2>Shipping</h2>
               <p>
                 <strong>Shipping: </strong>
-                {cart.shippingAddress.address},{cart.shippingAddress.city}{" "}
-                {cart.shippingAddress.postalCode},{" "}
+                {cart.shippingAddress.address},
+                {cart.shippingAddress.city}
+                {" "}
+                {cart.shippingAddress.postalCode},
+                {" "}
                 {cart.shippingAddress.country}
               </p>
             </ListGroup.Item>
@@ -101,7 +103,7 @@ function PlaceOrderScreen() {
 
               <ListGroup.Item>
                 <Row>
-                  <Col>Items</Col>
+                  <Col>Items: </Col>
                   <Col>${cart.itemsPrice}</Col>
                 </Row>
               </ListGroup.Item>
@@ -133,7 +135,9 @@ function PlaceOrderScreen() {
                   className="btn-block"
                   disabled={cart.cartItems.length === 0}
                   onClick={placeOrder}
-                ></Button>
+                >
+                  Place Order
+                </Button>
               </ListGroup.Item>
             </ListGroup>
           </Card>
