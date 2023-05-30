@@ -39,7 +39,7 @@ class Order(models.Model):
     paymentMethod = models.CharField(max_length=200, null=True, blank=True)
     taxPrice = models.DecimalField(max_digits=7, decimal_places=2, blank=True)
     shippingPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, blank=True)
+        max_digits=7, decimal_places=2, blank=True, null=True)
     totalPrice = models.DecimalField(
         max_digits=7, decimal_places=2, blank=True)
     isPaid = models.BooleanField(default=False)
@@ -75,7 +75,7 @@ class ShippingAddress(models.Model):
     postalCode = models.CharField(max_length=200, null=True, blank=True)
     country = models.CharField(max_length=200, null=True, blank=True)
     shippingPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, blank=True)
+        max_digits=7, decimal_places=2, blank=True, null=True)
     _id = models.AutoField(primary_key=True, editable=False)
 
     class Meta:

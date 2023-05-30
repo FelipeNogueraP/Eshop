@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Button,
-  Row,
-  Col,
-  ListGroup,
-  Image,
-  Card,
-  
-} from "react-bootstrap";
+import { Button, Row, Col, ListGroup, Image, Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
 import CheckoutSteps from "../components/CheckoutSteps";
+import { createOrder } from "../actions/orderActions";
+import { ORDER_CREATE_RESET } from "../constants/orderConstants";
 
 function PlaceOrderScreen() {
   const cart = useSelector((state) => state.cart);
   const navigate = useNavigate();
+  const orderCreate = useSelector((state) => state.orderCreate);
+  const { order, success, error } = orderCreate;
+
   const dispatch = useDispatch();
-  const placeOrder = () => {
-    navigate("/placeorder");
-  };
+
   cart.itemsPrice = cart.cartItems
     .reduce((acc, item) => acc + item.price * item.qty, 0)
     .toFixed(2);
@@ -32,6 +27,38 @@ function PlaceOrderScreen() {
     Number(cart.taxPrice)
   ).toFixed(2);
 
+  useEffect(() => {
+    if (!cart.paymentMethod) {
+      navigate("/payment");
+    }
+  }, [navigate, cart.paymentMethod]);
+
+  const resetOrder = useCallback(() => {
+    dispatch({ type: ORDER_CREATE_RESET });
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (success && order) {
+      navigate(`/order/${order._id}`);
+      resetOrder();
+    }
+  }, [success, navigate, order, resetOrder]);
+  console.log("succes&&order");
+
+  const placeOrder = () => {
+    dispatch(
+      createOrder({
+        orderItems: cart.cartItems,
+        shippingAddress: cart.shippingAddress,
+        paymentMethod: cart.paymentMethod,
+        itemsPrice: cart.itemsPrice,
+        shippingPrice: cart.shippingPrice,
+        taxPrice: cart.taxPrice,
+        totalPrice: cart.totalPrice,
+      })
+    );
+  };
+
   return (
     <div>
       <CheckoutSteps step1 step2 step3 step4 />
@@ -42,11 +69,8 @@ function PlaceOrderScreen() {
               <h2>Shipping</h2>
               <p>
                 <strong>Shipping: </strong>
-                {cart.shippingAddress.address},
-                {cart.shippingAddress.city}
-                {" "}
-                {cart.shippingAddress.postalCode},
-                {" "}
+                {cart.shippingAddress.address},{cart.shippingAddress.city}{" "}
+                {cart.shippingAddress.postalCode},{" "}
                 {cart.shippingAddress.country}
               </p>
             </ListGroup.Item>
@@ -127,6 +151,10 @@ function PlaceOrderScreen() {
                   <Col>Total</Col>
                   <Col>${cart.totalPrice}</Col>
                 </Row>
+              </ListGroup.Item>
+
+              <ListGroup.Item>
+                {error && <Message variant="danger">{error}</Message>}
               </ListGroup.Item>
 
               <ListGroup.Item>
