@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Row, Col, ListGroup, Image, Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
 import CheckoutSteps from "../components/CheckoutSteps";
 import { createOrder } from "../actions/orderActions";
-import { ORDER_CREATE_RESET } from "../constants/orderConstants";
+import {
+  ORDER_CREATE_RESET,
+} from "../constants/orderConstants";
 
 function PlaceOrderScreen() {
   const cart = useSelector((state) => state.cart);
@@ -33,18 +35,6 @@ function PlaceOrderScreen() {
     }
   }, [navigate, cart.paymentMethod]);
 
-  const resetOrder = useCallback(() => {
-    dispatch({ type: ORDER_CREATE_RESET });
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (success && order) {
-      navigate(`/order/${order._id}`);
-      resetOrder();
-    }
-  }, [success, navigate, order, resetOrder]);
-  console.log("succes&&order");
-
   const placeOrder = () => {
     dispatch(
       createOrder({
@@ -58,6 +48,21 @@ function PlaceOrderScreen() {
       })
     );
   };
+
+  const resetOrder = useCallback(() => {
+    dispatch({ type: ORDER_CREATE_RESET });
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (success && order) {
+      const timeout = setTimeout(() => {
+        navigate(`/order/${order._id}`, { replace: true });
+        resetOrder();
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [success, navigate, order, resetOrder]);
 
   return (
     <div>

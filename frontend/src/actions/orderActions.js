@@ -4,6 +4,7 @@ import {
   ORDER_CREATE_SUCCESS,
   ORDER_CREATE_FAIL,
 } from "../constants/orderConstants";
+import { CART_CLEAR_ITEMS } from "../constants/cartConstants";
 
 export const createOrder = (order) => async (dispatch, getState) => {
   try {
@@ -13,7 +14,7 @@ export const createOrder = (order) => async (dispatch, getState) => {
     const {
       userLogin: { userInfo },
     } = getState();
-    console.log("prueba create order");
+    console.log("prueba create order- REQUEST-ORDERACTIONS.JS");
 
     const config = {
       headers: {
@@ -23,15 +24,19 @@ export const createOrder = (order) => async (dispatch, getState) => {
     };
 
     const { data } = await axios.post(`/api/orders/add/`, order, config);
-    console.log("prueba add order");
 
     dispatch({
       type: ORDER_CREATE_SUCCESS,
-      loading: false,
-      success: true,
-      order: data,
+      payload: data,
     });
-    console.log("prueba success order", { order });
+    console.log("prueba success order- SUCCESS- ORDERACTIONS.JS", { order });
+
+    dispatch({
+      type: CART_CLEAR_ITEMS,
+      payload: data,
+    });
+    localStorage.removeItem('cartItems')
+
   } catch (error) {
     dispatch({
       type: ORDER_CREATE_FAIL,
