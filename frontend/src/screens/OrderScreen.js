@@ -22,7 +22,7 @@ function OrderScreen() {
     if (!order || order._id !== Number(orderId)) {
       dispatch(getOrderDetails(orderId));
     }
-  }, [dispatch, order, orderId]);
+  }, [order, orderId]);
 
   const navigate = useNavigate();
 
