@@ -5,23 +5,18 @@ import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
 import { getOrderDetails, payOrder } from "../actions/orderActions";
-import {
-  PayPalScriptProvider,
-  PayPalButtons,
-  usePayPalScriptReducer,
-} from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { ORDER_PAY_RESET } from "../constants/orderConstants";
 
 function OrderScreen() {
   const orderId = useParams().id;
   const dispatch = useDispatch();
 
-  const navigate = useNavigate();
-
   const [sdkReady, setSdkReady] = useState(false);
   const orderDetails = useSelector((state) => state.orderDetails);
   const { order, error, loading } = orderDetails;
 
-  const orderPay = useSelector((state) => state.orderDetails);
+  const orderPay = useSelector((state) => state.orderPay);
   const { loading: loadingPay, success: successPay } = orderPay;
 
   if (!loading && !error) {
@@ -43,46 +38,28 @@ function OrderScreen() {
   };
 
   useEffect(() => {
-    if (!order || successPay || order._id !== Number(orderId)) {
+    const getOrder = () => {
       dispatch(getOrderDetails(orderId));
+    };
+
+    if (!order || successPay || order._id !== Number(orderId)) {
+      getOrder();
     } else if (!order.isPaid) {
       if (!window.paypal) {
         addPayPalScript();
       } else {
-        window.paypal
-          .Buttons({
-            style: {
-              shape: "rect",
-              color: "gold",
-              layout: "vertical",
-              label: "paypal",
-            },
-            createOrder: (data, actions) => {
-              return actions.order.create({
-                purchase_units: [
-                  {
-                    amount: {
-                      value: order.totalPrice,
-                    },
-                  },
-                ],
-              });
-            },
-            onApprove: async (data, actions) => {
-              const order = await actions.order.capture();
-              dispatch(payOrder(order, orderId));
-            },
-            onError: (err) => {
-              console.log(err);
-            },
-          })
-          .render("#paypal-button-container");
+        setSdkReady(true);
       }
     }
+
+    return () => {
+      // Cleanup function
+      dispatch({ type: ORDER_PAY_RESET });
+    };
   }, [dispatch, order, orderId, successPay]);
 
-  const successPaymentHandler = (paymentResult) => {
-    dispatch(payOrder(paymentResult, orderId));
+  const successPaymentHandler = async (details, data) => {
+    dispatch(payOrder(orderId, details));
   };
 
   return loading ? (
@@ -207,13 +184,30 @@ function OrderScreen() {
               {!order.isPaid && (
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
-                  {!sdkReady ? (
-                    <Loader />
-                  ) : (
+                  {sdkReady ? (
                     <PayPalButtons
-                      amount={order.totalPrice}
-                      onSuccess={successPaymentHandler}
+                      style={{
+                        shape: "rect",
+                        color: "gold",
+                        layout: "vertical",
+                        label: "paypal",
+                      }}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          purchase_units: [
+                            {
+                              amount: {
+                                value: order.totalPrice,
+                              },
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={successPaymentHandler}
+                      onError={(err) => console.log(err)}
                     />
+                  ) : (
+                    <Loader />
                   )}
                 </ListGroup.Item>
               )}
