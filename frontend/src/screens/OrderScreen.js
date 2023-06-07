@@ -1,16 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Row, Col, ListGroup, Image, Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
-import { getOrderDetails } from "../actions/orderActions";
+import { getOrderDetails, payOrder } from "../actions/orderActions";
+import {
+  PayPalScriptProvider,
+  PayPalButtons,
+  usePayPalScriptReducer,
+} from "@paypal/react-paypal-js";
 
 function OrderScreen() {
   const orderId = useParams().id;
   const dispatch = useDispatch();
+
+  const navigate = useNavigate();
+
+  const [sdkReady, setSdkReady] = useState(false);
   const orderDetails = useSelector((state) => state.orderDetails);
   const { order, error, loading } = orderDetails;
+
+  const orderPay = useSelector((state) => state.orderDetails);
+  const { loading: loadingPay, success: successPay } = orderPay;
 
   if (!loading && !error) {
     order.itemsPrice = order.orderItems
@@ -18,13 +30,60 @@ function OrderScreen() {
       .toFixed(2);
   }
 
-  useEffect(() => {
-    if (!order || order._id !== Number(orderId)) {
-      dispatch(getOrderDetails(orderId));
-    }
-  }, [order, orderId]);
+  const addPayPalScript = () => {
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src =
+      "https://www.paypal.com/sdk/js?client-id=AeeSLzOM4NbC9AjbzV_b1VbnTN6J2VwfZ9iLv7iUx3AneFBGgn413Yq3qjkAQinQk8xeM78ZgGmbOoQ_";
+    script.async = true;
+    script.onload = () => {
+      setSdkReady(true);
+    };
+    document.body.appendChild(script);
+  };
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (!order || successPay || order._id !== Number(orderId)) {
+      dispatch(getOrderDetails(orderId));
+    } else if (!order.isPaid) {
+      if (!window.paypal) {
+        addPayPalScript();
+      } else {
+        window.paypal
+          .Buttons({
+            style: {
+              shape: "rect",
+              color: "gold",
+              layout: "vertical",
+              label: "paypal",
+            },
+            createOrder: (data, actions) => {
+              return actions.order.create({
+                purchase_units: [
+                  {
+                    amount: {
+                      value: order.totalPrice,
+                    },
+                  },
+                ],
+              });
+            },
+            onApprove: async (data, actions) => {
+              const order = await actions.order.capture();
+              dispatch(payOrder(order, orderId));
+            },
+            onError: (err) => {
+              console.log(err);
+            },
+          })
+          .render("#paypal-button-container");
+      }
+    }
+  }, [dispatch, order, orderId, successPay]);
+
+  const successPaymentHandler = (paymentResult) => {
+    dispatch(payOrder(paymentResult, orderId));
+  };
 
   return loading ? (
     <Loader />
@@ -144,6 +203,20 @@ function OrderScreen() {
                   <Col>${order.totalPrice}</Col>
                 </Row>
               </ListGroup.Item>
+
+              {!order.isPaid && (
+                <ListGroup.Item>
+                  {loadingPay && <Loader />}
+                  {!sdkReady ? (
+                    <Loader />
+                  ) : (
+                    <PayPalButtons
+                      amount={order.totalPrice}
+                      onSuccess={successPaymentHandler}
+                    />
+                  )}
+                </ListGroup.Item>
+              )}
             </ListGroup>
           </Card>
         </Col>
@@ -152,4 +225,19 @@ function OrderScreen() {
   );
 }
 
-export default OrderScreen;
+function OrderScreenWrapper() {
+  const [initialOptions] = useState({
+    "client-id":
+      "AeeSLzOM4NbC9AjbzV_b1VbnTN6J2VwfZ9iLv7iUx3AneFBGgn413Yq3qjkAQinQk8xeM78ZgGmbOoQ_",
+    currency: "USD",
+    intent: "capture",
+  });
+
+  return (
+    <PayPalScriptProvider options={initialOptions}>
+      <OrderScreen />
+    </PayPalScriptProvider>
+  );
+}
+
+export default OrderScreenWrapper;
